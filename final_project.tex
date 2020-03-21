@@ -1,0 +1,243 @@
+\documentclass{article}
+
+\usepackage{fancyhdr}
+\usepackage{extramarks}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{tikz}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{pythonhighlight}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{tikz}
+\usepackage[colorlinks = true,
+linkcolor = blue,
+urlcolor  = blue,
+citecolor = blue,
+anchorcolor = blue]{hyperref}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{graphicx}
+
+\usetikzlibrary{automata,positioning}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Document setup
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+% Basic Document Settings
+%
+
+\topmargin=-0.45in
+\evensidemargin=0in
+\oddsidemargin=0in
+\textwidth=6.5in
+\textheight=9.0in
+\headsep=0.25in
+
+\linespread{1.1}
+
+\pagestyle{fancy}
+\lhead{\hmwkAuthorName}
+\chead{}
+\rhead{\hmwkClass}
+\lfoot{\lastxmark}
+\cfoot{\thepage}
+
+\renewcommand\headrulewidth{0.4pt}
+\renewcommand\footrulewidth{0.4pt}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+
+\setlength\parindent{0pt}
+
+%
+% Create Problem Sections
+%
+
+\newcommand{\enterProblemHeader}[1]{
+	\nobreak\extramarks{}{Problem \arabic{#1} continued on next page\ldots}\nobreak{}
+	\nobreak\extramarks{Problem \arabic{#1} (continued)}{Problem \arabic{#1} continued on next page\ldots}\nobreak{}
+}
+
+\newcommand{\exitProblemHeader}[1]{
+	\stepcounter{#1}
+}
+
+\setcounter{secnumdepth}{0}
+\newcounter{partCounter}
+\newcounter{homeworkProblemCounter}
+\setcounter{homeworkProblemCounter}{1}
+
+%
+% Homework Problem Environment
+%
+% This environment takes an optional argument. When given, it will adjust the
+% problem counter. This is useful for when the problems given for your
+% assignment aren't sequential. See the last 3 problems of this template for an
+% example.
+%
+\newenvironment{homeworkProblem}[1][-1]{
+	\ifnum#1>0
+	\setcounter{homeworkProblemCounter}{#1}
+	\fi
+	\section{Problem \arabic{homeworkProblemCounter}}
+	\setcounter{partCounter}{1}
+}{
+	\exitProblemHeader{homeworkProblemCounter}
+}
+
+%
+% Homework Details
+%   - Title
+%   - Due date
+%   - Class
+%   - Section/Time
+%   - Author
+%
+
+\newcommand{\hmwkTitle}{Final Project}
+\newcommand{\hmwkClass}{Foundations of Fairness in Machine Learning}
+\newcommand{\hmwkAuthorName}{\textbf{Jakub Filipek}}
+
+%
+% Title Page
+%
+
+\title{
+	% \vspace{2in}
+	\textmd{\textbf{\hmwkClass}\\Sampling and Fairness}\\
+	% \vspace{0.1in}\large{\textit{}}
+	% \vspace{3in}
+}
+
+\author{\hmwkAuthorName}
+\date{}
+
+\renewcommand{\part}[1]{\textbf{\large Part \Alph{partCounter}}\stepcounter{partCounter}\\}
+
+%
+% Various Helper Commands
+%
+
+% Useful for algorithms
+\newcommand{\alg}[1]{\textsc{\bfseries \footnotesize #1}}
+
+% For derivatives
+\newcommand{\deriv}[1]{\frac{\mathrm{d}}{\mathrm{d}x} (#1)}
+
+% For partial derivatives
+\newcommand{\pderiv}[2]{\frac{\partial}{\partial #1} (#2)}
+
+% Integral dx
+\newcommand{\dx}{\mathrm{d}x}
+
+% Alias for the Solution section header
+\newcommand{\solution}{\textbf{\large Solution}}
+
+% Probability commands: Expectation, Variance, Covariance, Bias
+\newcommand{\E}{\mathrm{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Bias}{\mathrm{Bias}}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+My project was looking at the impact of under- and over- sampling methods on False Positive Rates (FPR) across different populations. Those methods are used when datasets have an imbalanced distribution of positive and negative examples, which is often the case in social datasets.
+
+Most of oversampling and undersampling methods work by removing or adding points close to what algorithm thinks is a decision boundary in binary classification. However, if there are some groups of people (for example distinguished by their sex) that leave close to that boundary they might be either removed from the dataset entirely, or become a minority in relation to points artificially added to dataset. In both of these cases the resulting new, and supposedly improved dataset will portray them in an unfair, skewed way.
+
+\section{Past Work}
+There is not a lot of literature on this topic. However, there are 2 papers, which are closely related to my project. 
+
+Celis et al. in \cite{DBLP:journals/corr/CelisDKV16} describe a new method of subsampling a large dataset in such a way that it is fair and diverse. This is a very interesting notion, since most of such work does not take a significant interest in fairness, but rather in performance, and some methods will look at diversity of outputs.
+
+Their approach is to modify a $k-DPP$ algorithm, by ensuring that these subset are also fair. This way, when they're later used for sampling only a few examples from them they are more likely to be fair. Simultaneously, the amount of subsets ensures diversity of the outcome.
+
+However, the problem with this work is that it does not evaluate how such method affects performance, which is often the most important evaluation criterion for other under- and oversampling methods. This is something that I want investigate, and something that I believe would be a good follow-up to \cite{DBLP:journals/corr/CelisDKV16}.
+
+Another paper, is more recent, but also quite different in the goal. \cite{fukuchi2019faking} describes a scenario in which a decision-maker can create a dataset, which seems fair to anyone who interacts with it, but is indeed biased.
+
+While it might seem much different from what I am trying to attempt, the role of decision-maker in a dataset creation is not much different from oversampling algorithms. We can consider a decision-maker an oversampler, with an additional adversary goal. This is interesting due to the fact that oversampling (and undersampling) methods can lead to such problem even when there is no adversial goal. Their focus on overall accuracy can lead to huge sacrifices on smaller minority groups, or even larger ones, if they live close enough to boundary decision.
+
+\section{Experimental setup}
+
+I used a \href{https://archive.ics.uci.edu/ml/datasets/Census+Income}{Census Income Dataset from UCI Machine Learning Repository}, which defines a task to predict whether a person earns less or more that 50 thousand dollars per year. Since this is a binary task it is perfect from under- and over-sampling methods which often were developed based on such problems. Additionally, for every person it has their race and sex features, which I hid away from a predictive, over- and undersampling algorithms, but which were used to define groups. These groups can be seen on Tables \ref{tab:sex} and \ref{tab:race}. There are only 7841 (24.08\%) people with salary over 50 thousand dollars, out of 32561 in the whole dataset.
+
+Every categorical feature in dataset was converted to a one-hot encoding for all of the possible values of that feature. This, along with removing race and sex resulted in 98 dimensional vector.
+
+Model to make a binary prediction was a simple logistic regression model, with 98-dimensional input and 2-dimensional decision.
+
+Along with the vanilla (unbalanced dataset) I tested 6 different data augmentation algorithms. All of the implementation were using a package from \cite{JMLR:v18:16-365}, available \href{https://imbalanced-learn.readthedocs.io/en/stable/index.html}{publicly}:
+\begin{itemize}
+	\item Random Oversampling: Every point from minority group (in our case 1 - people over 50k) has the same chance of being duplicated. Duplication are performed until minority and majority group are the same size.
+	\item SMOTE: All points in minority group they all can be linked other points from minority group close by (typically within 3 neighbors). Linking means, that two points are taken, and an artificial one is generated somewhere on the line between the two. Note that this is the most basic implementation of SMOTE, and more advanced versions have been built on top of it. However, it is still popular, and worth investigating.
+	\item BorderSMOTE: Uses SMOTE algorithm to generate new points. However, only points which have neighbors from different classes, but majority of its neighbors are still in the minority class. In other words, a minority point with 2 minority and 1 majority neighbor can be used, while point with all minority or all majority neighborhoods cannot be used.
+	\item ADASYN: Similar to SMOTE, however each point will be used to generate amount of new points proportional to amount of majority neighbors.
+	\item Random Undersampling: Every point from majority group (in our case 0 - people under 50k) has the same chance of being removed. Removals are performed until minority and majority group are the same size.
+	\item Tomek: Removes a point in majority group if and only if it's nearest neighbor is a point in a minority class, and it is a nearest neighbor to that point too.
+\end{itemize}
+
+Every algorithm was used to produce a new dataset a 100 times (using different random seeds), and a model was trained for 5 epochs each time, using Adam optimizer.
+
+\section{Results}
+
+Due to space efficiency (tables were going over the edges of the page) I was only able to put these two algorithms and a unbalanced dataset for reference. However, all of the plots, along with some more discussion can be found \href{https://docs.google.com/presentation/d/1f27Qyvyg0sc9aOAcSGB4ifR7f2SYnvqD9Y22beVF9gg/edit?usp=sharing}{it the final presentation}. Additionally all of the code that can be used to reproduce these results can be found on \href{https://github.com/balbok0/599m-final}{this github repository}.
+
+Table \ref{tab:sex} shows the FPRs of the best undersampling and oversampling algorithms on the Census dataset. We can see that both methods tend to keep Male FPR more stable than Female, when compared to unbalanced dataset. This might be related to the fact that there are twice as many males as there are females and hence they can much more likely to stay, or to enforce even further themselves with new points added around them.
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|c|c|c|}
+	\hline
+	 & Random Oversampling & Tomek & Vanilla \\
+	\hline
+	Male & 12.53\% +/- 0.21
+	& 12.35\% +/- 0.07 & 12.17\% +/- 0.42 \\
+	\hline
+	Female & 6.23\% +/- 0.19 & 5.54\% +/- 0.16 & 4.98\% +/- 0.39 \\
+	\hline
+	\end{tabular}
+	\caption{False Positive Rates of different sexes, when the best oversampling (Random Oversampling) and undersampling (Tomek) methods are used. Vanilla (unbalanced) dataset is also shown as a baseline performance.}
+	\label{tab:sex}
+\end{table}
+
+However, when investigated we can see that this is not the case for SMOTE and ADASYN (In particular Male group FPR explodes to 20-24, while Female stays around 6-8), hinting that females are probably closer to the label boundary (based on salary, not race or sex), and hence they are getting a small boost from these two methods.
+
+Table \ref{tab:race} shows similar results but with regards to race. Here we can see that both of these methods significantly increase FPR of American Indian/Eskimo and Black groups, while significantly lowering Asian/Pacific Islander. This can hint us that the first two groups are closer to the boundary and the last one is further away.
+
+The reason for that is that Tomek links tend to remove points close to boundary, hence decreasing number of examples of these points, and possibly performance of the model on them. Since some point were removed model will perform better on the remaining ones, which is why Asian/Pacific Islander group benefits from this algorithm.
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{|l|c|c|c|}
+		\hline
+		& Random Oversampling & Tomek & Vanilla \\
+		\hline
+		American Indian / Eskimo &  13.07\% +/- 0.58 &  10.07\% +/- 0.17&  8.36\% +/- 0.94\\
+		\hline
+		Asian / Pacific Islander & 10.34\% +/- 0.55 & 12.71\% +/- 2.07& 13.63\% +/- 1.58\\
+		\hline
+		Black & 7.03\% +/- 0.20 & 5.04\% +/- 0.08& 4.86\% +/- 0.39\\
+		\hline
+		Other & 7.45\% +/- 0.67 & 6.11\% +/- 0.19& 6.01\% +/- 1.21\\
+		\hline
+		White & 11.21\% +/- 0.19 & 10.60\% +/- 0.08& 10.26\% +/- 0.40\\
+		\hline
+	\end{tabular}
+	\caption{False Positive Rates of different races, when the best oversampling (Random Oversampling) and undersampling (Tomek) methods are used. Vanilla (unbalanced) dataset is also shown as a baseline performance.}
+	\label{tab:race}
+\end{table}
+
+A last observation is that FPR are skewed towards undersampling in our case. In particular, all of the oversampling methods have performed worse than Tomek links. The best intuition I can give for such trend is that when we remove negative examples with Tomek, we are removing negative samples close to the boundary, which are probably these false positives. However, when we add new positive examples close to the boundary they can push the boundary in such a way that includes more false positives, which causes oversampling methods to have worse FPR than unbalanced dataset.
+
+\bibliographystyle{plain}
+\bibliography{final_project}
+\end{document}
+
